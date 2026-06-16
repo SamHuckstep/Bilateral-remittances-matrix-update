@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelled Remittances Sent Compared with World Bank Data</title>
+<style>
+:root {
+  --cgd-teal: #0B4C5B;
+  --cgd-light-teal: #006970;
+  --cgd-gold: #FFB52C;
+  --cgd-light-gold: #FEE8BF;
+  --cgd-teal-gray: #85A5AD;
+  --cgd-blue: #2D99B5;
+  --cgd-light-blue: #BFDEE0;
+  --cgd-light-gray: #DFE0E2;
+  --cgd-dark-gray: #394649;
+  --cgd-teal-black: #1A272A;
+  --cgd-green: #00896C;
+  --cgd-red: #D15553;
+  --cgd-white: #FFFFFF;
+  --cgd-offwhite: #F8FAFB;
+  --border: #D9E1E4;
+  --font-sans: "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --title-size-desktop: 24px;
+  --title-size-tablet: 22px;
+  --title-size-mobile: 20px;
+  --label-size: 12px;
+  --body-size: 12px;
+  --note-size: 10.8px;
+  --control-height: 34px;
+  --control-radius: 9px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; color: var(--cgd-teal-black); font-family: var(--font-sans); }
+body { font-size: var(--body-size); }
+.remit-viz, .remit-viz * { box-sizing: border-box; }
+.remit-viz {
+  width: 100%;
+  max-width: 930px;
+  margin: 0 auto;
+  padding: 13px;
+  background: var(--cgd-white);
+  color: var(--cgd-teal-black);
+  font-family: var(--font-sans);
+  position: relative;
+}
+.remit-viz:fullscreen { max-width: none; width: 100%; min-height: 100vh; overflow-y: auto; padding: 22px; background: #fff; }
+.remit-viz:fullscreen h1 { font-size: 30px; }
+.remit-viz:fullscreen .remit-tooltip { position: fixed; z-index: 2147483647; }
+.remit-viz__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.remit-viz h1 {
+  margin: 0;
+  color: var(--cgd-teal);
+  font-size: var(--title-size-desktop);
+  line-height: 1.14;
+  letter-spacing: -0.012em;
+  font-weight: 700;
+}
+.remit-viz__subtitle { display: none; }
+.remit-viz__actions { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; }
+.remit-viz__small-button { display: none; }
+.fullscreen-btn { flex: 0 0 auto; width: 30px; height: 30px; border: 1px solid var(--border); background: #fff; color: var(--cgd-teal); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.fullscreen-btn:hover, .fullscreen-btn:focus { border-color: var(--cgd-teal-gray); outline: none; box-shadow: 0 0 0 3px rgba(11, 76, 91, 0.10); }
+.fullscreen-btn .icon-compress { display: none; }
+.remit-viz:fullscreen .fullscreen-btn .icon-expand { display: none; }
+.remit-viz:fullscreen .fullscreen-btn .icon-compress { display: block; }
+
+.remit-viz__controls {
+  display: grid;
+  grid-template-columns: minmax(124px, 0.82fr) minmax(148px, 0.95fr) minmax(156px, 0.9fr);
+  gap: 8px;
+  align-items: end;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--cgd-offwhite);
+  margin-bottom: 8px;
+}
+.remit-control, .remit-toggle { min-width: 0; position: relative; }
+.remit-control label, .remit-toggle__label {
+  display: block;
+  color: var(--cgd-teal);
+  font-size: var(--label-size);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.combo { position: relative; width: 100%; }
+.combo__button {
+  width: 100%;
+  min-height: var(--control-height);
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: var(--control-radius);
+  padding: 7px 30px 7px 10px;
+  color: var(--cgd-teal-black);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.combo__button:hover, .combo__button:focus { outline: none; border-color: var(--cgd-teal-gray); box-shadow: 0 0 0 3px rgba(11, 76, 91, 0.10); }
+.combo__button::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--cgd-dark-gray);
+  border-bottom: 2px solid var(--cgd-dark-gray);
+  transform: translateY(-55%) rotate(45deg);
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transition: transform 0.15s ease;
+}
+.combo__menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 7px);
+  z-index: 30;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 14px 24px rgba(26,39,42,0.12);
+}
+.combo__menu[hidden] { display: none; }
+.combo__search {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--cgd-teal-gray);
+  border-radius: 10px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--cgd-teal-black);
+  box-shadow: 0 0 0 3px rgba(45,153,181,0.10);
+}
+.combo__search:focus { outline: none; border-color: var(--cgd-teal); box-shadow: 0 0 0 4px rgba(45,153,181,0.15); }
+.combo__list { margin-top: 7px; max-height: 235px; overflow-y: auto; padding-right: 4px; scrollbar-color: var(--cgd-teal-gray) transparent; }
+.combo__option {
+  width: 100%;
+  display: block;
+  border: 0;
+  background: #fff;
+  color: var(--cgd-teal-black);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.combo__option:hover, .combo__option:focus { outline: none; background: #eef4f5; }
+.combo__option[aria-selected="true"] { background: #F3F6F7; font-weight: 700; }
+.combo__empty { color: var(--cgd-dark-gray); font-size: 12px; padding: 8px 9px; }
+.remit-segment {
+  display: inline-flex;
+  width: 100%;
+  min-height: var(--control-height);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  padding: 3px;
+  gap: 2px;
+}
+.remit-segment button {
+  flex: 1 1 auto;
+  border: 0;
+  background: transparent;
+  color: var(--cgd-dark-gray);
+  font: inherit;
+  font-size: 11.4px;
+  line-height: 1.1;
+  padding: 6px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.remit-segment button[aria-pressed="true"] { background: var(--cgd-teal); color: #fff; font-weight: 650; }
+.remit-segment button:hover:not([aria-pressed="true"]), .remit-segment button:focus:not([aria-pressed="true"]) { background: #eef4f5; outline: none; }
+
+.remit-viz__cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.remit-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px 8px 7px;
+  min-height: 54px;
+  position: relative;
+  overflow: hidden;
+}
+.remit-card::before { content: ""; position: absolute; left: 0; top: 0; height: 3px; width: 100%; background: var(--cgd-teal); }
+.remit-card__label { color: var(--cgd-teal); font-weight: 700; font-size: 11px; margin-bottom: 3px; line-height: 1.15; }
+.remit-card__line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; min-width: 0; }
+.remit-card__figure { color: var(--cgd-teal-black); font-size: 17px; line-height: 1.08; font-weight: 700; letter-spacing: -0.01em; }
+.remit-card__qualifier { color: var(--cgd-dark-gray); line-height: 1.22; font-size: 10.4px; font-weight: 400; letter-spacing: 0; }
+
+.remit-viz__chart-title { display: none; }
+.remit-viz__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  margin: 3px 0 5px 0;
+  color: var(--cgd-dark-gray);
+  font-size: 11px;
+  line-height: 1.2;
+}
+.remit-viz__legend-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.remit-viz__swatch { width: 10px; height: 10px; border-radius: 999px; display: inline-block; border: 1px solid rgba(26, 39, 42, 0.18); }
+.remit-viz__chart-wrap {
+  width: 100%;
+  min-height: 380px;
+  position: relative;
+  overflow: visible;
+}
+.remit-viz svg { display: block; width: 100%; height: auto; overflow: visible; }
+.axis { fill: var(--cgd-teal-black); font: 500 10.5px var(--font-sans); }
+.axis-title { fill: var(--cgd-teal); font: 700 11.5px var(--font-sans); }
+.grid-line { stroke: var(--cgd-light-gray); stroke-width: 1; shape-rendering: crispEdges; opacity: 0.72; }
+.axis-line { stroke: var(--cgd-teal-black); stroke-width: 1.05; shape-rendering: crispEdges; }
+.equal-line { stroke: var(--cgd-teal-gray); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.equal-label { fill: var(--cgd-dark-gray); font: 700 10.5px var(--font-sans); pointer-events: none; }
+.equal-label-bg { fill: rgba(255,255,255,0.94); stroke: var(--border); stroke-width: 0.6; pointer-events: none; }
+.point { cursor: pointer; transition: opacity 120ms ease, r 120ms ease; }
+.point:hover { opacity: 1; }
+.point-label { fill: var(--cgd-teal-black); font: 700 10.5px var(--font-sans); pointer-events: none; }
+.point-label-bg { fill: rgba(255,255,255,0.92); stroke: rgba(217,225,228,0.88); stroke-width: 0.6; pointer-events: none; }
+
+.remit-tooltip {
+  position: fixed;
+  z-index: 9999;
+  width: max-content;
+  min-width: 240px;
+  max-width: min(360px, calc(100vw - 24px));
+  pointer-events: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  box-shadow: 0 10px 24px rgba(26,39,42,0.14);
+  padding: 9px 10px;
+  color: var(--cgd-teal-black);
+  font-size: 11.5px;
+  line-height: 1.38;
+}
+.remit-tooltip[hidden] { display: none; }
+.remit-tooltip__title { color: var(--cgd-teal); font-weight: 800; margin-bottom: 3px; font-size: 12.5px; }
+.remit-tooltip__row { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid #EDF2F3; padding-top: 5px; margin-top: 5px; }
+.remit-tooltip__row span:first-child { color: var(--cgd-dark-gray); }
+.remit-tooltip__row span:last-child { font-weight: 800; text-align: right; }
+
+.remit-viz__note {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  color: var(--cgd-dark-gray);
+  font-size: var(--note-size);
+  line-height: 1.38;
+}
+.remit-viz__note strong { color: var(--cgd-teal); }
+
+@media (max-width: 860px) {
+  .remit-viz { padding: 11px; }
+  .remit-viz__controls { grid-template-columns: minmax(90px, 0.78fr) minmax(112px, 0.9fr) minmax(110px, 0.92fr); gap: 5px; padding: 6px; margin-bottom: 6px; }
+  .remit-control label, .remit-toggle__label { font-size: 10.2px; margin-bottom: 2px; }
+  .combo__button { min-height: 29px; padding: 5px 22px 5px 7px; font-size: 10.8px; border-radius: 8px; }
+  .combo__button::after { width: 7px; height: 7px; right: 8px; }
+  .remit-segment { min-height: 29px; padding: 2px; gap: 1px; }
+  .remit-segment button { font-size: 9.6px; padding: 4px 3px; }
+  .remit-viz__cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-bottom: 6px; }
+  .remit-card { min-height: 48px; padding: 7px 6px 6px; border-radius: 10px; }
+  .remit-card__label { font-size: 9.8px; margin-bottom: 2px; }
+  .remit-card__figure { font-size: 13.5px; }
+  .remit-card__qualifier { font-size: 9.3px; }
+  .axis { font-size: 9.5px; }
+}
+@media (max-width: 650px) {
+  .remit-viz h1 { font-size: var(--title-size-mobile); }
+  .remit-viz__chart-wrap { overflow-x: auto; min-height: 340px; }
+  .remit-viz__legend { font-size: 10px; gap: 4px 6px; }
+}
+@media (max-width: 520px) {
+  .remit-viz__top { gap: 7px; }
+  .fullscreen-btn { width: 29px; height: 29px; }
+  .remit-viz__controls { grid-template-columns: minmax(68px, 0.78fr) minmax(82px, 0.88fr) minmax(90px, 0.98fr); gap: 4px; padding: 5px; }
+  .combo__button { font-size: 9.8px; }
+  .remit-segment button { font-size: 8.5px; padding-left: 1px; padding-right: 1px; }
+  .combo__menu { position: fixed; left: 12px; right: 12px; top: 78px; }
+  .remit-viz__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .remit-card__figure { font-size: 13px; }
+}
+
+</style>
+</head>
+<body>
+<div class="remit-viz" id="remitViz">
+  <div class="remit-viz__top">
+    <div>
+      <h1>Modelled Remittances Sent Compared with World Bank Payments Data</h1>
+    </div>
+    <div class="remit-viz__actions">
+      <button class="fullscreen-btn" id="fullscreenBtn" type="button" aria-label="View fullscreen" title="View fullscreen">
+        <svg class="icon-expand" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="icon-compress" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3v5H3M16 3v5h5M8 21v-5H3M16 21v-5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="remit-viz__controls" aria-label="Chart controls">
+    <div class="remit-control">
+      <label id="incomeLabel">Income group</label>
+      <div id="incomeSelect"></div>
+    </div>
+    <div class="remit-control">
+      <label id="countryLabel">Country</label>
+      <div id="countrySelect"></div>
+    </div>
+    <div class="remit-toggle">
+      <span class="remit-toggle__label">Year</span>
+      <div class="remit-segment" role="group" aria-label="Year">
+        <button id="year2021" type="button" aria-pressed="false">2021</button>
+        <button id="year2024" type="button" aria-pressed="true">2024</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="remit-viz__cards" id="cards"></div>
+
+  <div class="remit-viz__chart-title">
+    <div>
+      <h2 id="chartTitle">Remittances sent: model versus World Bank</h2>
+      <p class="remit-viz__chart-caption" id="chartCaption"></p>
+    </div>
+  </div>
+
+  <div class="remit-viz__legend" id="legend"></div>
+  <div class="remit-viz__chart-wrap" id="chartWrap"></div>
+  <div class="remit-viz__note"><strong>Source and notes:</strong> Author calculations using World Bank remittance outflow totals and modelled remittance-sending estimates. Values are current US dollars. Axes use a pseudo-log scale so countries with zero reported values remain visible.</div>
+  <div class="remit-tooltip" id="tooltip" hidden></div>
+</div>
+
+<script>
+(function() {
+  const rawData = [{"code":"AFG","country":"Afghanistan","income":"Low income","model2021":449111075.20756716,"model2024":337658336.9209712,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"ALB","country":"Albania","income":"Upper middle income","model2021":59969363.750829,"model2024":58191420.11178972,"wbPaid2021":140344309.701298,"wbPaid2024":205314880.622839},{"code":"DZA","country":"Algeria","income":"Upper middle income","model2021":310494735.7098766,"model2024":223599981.85253933,"wbPaid2021":83113528.1477645,"wbPaid2024":143040780.994066},{"code":"ASM","country":"American Samoa","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"AND","country":"Andorra","income":"High income","model2021":147598153.30273438,"model2024":201136374.759812,"wbPaid2021":70514090.7029224,"wbPaid2024":140043306.143719},{"code":"AGO","country":"Angola","income":"Lower middle income","model2021":388666845.3299071,"model2024":584077196.9379388,"wbPaid2021":445400143.824057,"wbPaid2024":419534481.945559},{"code":"ATG","country":"Antigua and Barbuda","income":"High income","model2021":88956990.04071675,"model2024":98345710.23814234,"wbPaid2021":52124108.5185185,"wbPaid2024":42946906.2962962},{"code":"ARG","country":"Argentina","income":"Upper middle income","model2021":2805470447.954967,"model2024":3114596864.298614,"wbPaid2021":601996355.712133,"wbPaid2024":569566511.902988},{"code":"ARM","country":"Armenia","income":"Upper middle income","model2021":238769584.17289552,"model2024":277425885.46697384,"wbPaid2021":352775607.719648,"wbPaid2024":595500108.922664},{"code":"ABW","country":"Aruba","income":"High income","model2021":133554640.15441774,"model2024":197827307.77655545,"wbPaid2021":111331648.74942,"wbPaid2024":0.0},{"code":"AUS","country":"Australia","income":"High income","model2021":21445188712.0677,"model2024":27950287963.005524,"wbPaid2021":6458243743.22584,"wbPaid2024":16079465512.7137},{"code":"AUT","country":"Austria","income":"High income","model2021":6286248295.612992,"model2024":7410379297.445905,"wbPaid2021":6878204794.58873,"wbPaid2024":9677952357.9908},{"code":"AZE","country":"Azerbaijan","income":"Upper middle income","model2021":180294527.17781636,"model2024":274586920.7033975,"wbPaid2021":812858000.0,"wbPaid2024":663698000.0},{"code":"BHS","country":"Bahamas, The","income":"High income","model2021":184493944.27921888,"model2024":221299650.87510324,"wbPaid2021":246134328.020001,"wbPaid2024":320921378.619999},{"code":"BHR","country":"Bahrain","income":"High income","model2021":3661684750.2980323,"model2024":4709969977.736772,"wbPaid2021":2526861702.12766,"wbPaid2024":2659574468.0851},{"code":"BGD","country":"Bangladesh","income":"Lower middle income","model2021":2011416682.0304103,"model2024":3408687595.596504,"wbPaid2021":100464837.018003,"wbPaid2024":165689379.080449},{"code":"BRB","country":"Barbados","income":"High income","model2021":121772368.25547892,"model2024":147734482.79320717,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"BLR","country":"Belarus","income":"Upper middle income","model2021":1871075423.5050633,"model2024":996452364.2583226,"wbPaid2021":240200939.05,"wbPaid2024":227486364.56},{"code":"BEL","country":"Belgium","income":"High income","model2021":8429559387.317926,"model2024":10092252555.875395,"wbPaid2021":7063245870.70706,"wbPaid2024":10113206949.5673},{"code":"BLZ","country":"Belize","income":"Upper middle income","model2021":335885656.1395722,"model2024":463542060.6098914,"wbPaid2021":41695830.9735939,"wbPaid2024":47224551.072625},{"code":"BEN","country":"Benin","income":"Lower middle income","model2021":854454999.8984439,"model2024":965510108.9507866,"wbPaid2021":100184328.662152,"wbPaid2024":0.0},{"code":"BMU","country":"Bermuda","income":"High income","model2021":45236396.43255236,"model2024":53075500.961257346,"wbPaid2021":159405524.46364,"wbPaid2024":0.0},{"code":"BTN","country":"Bhutan","income":"Lower middle income","model2021":217194762.7453124,"model2024":321855799.68146366,"wbPaid2021":25794645.5021303,"wbPaid2024":74536653.4971936},{"code":"BOL","country":"Bolivia","income":"Lower middle income","model2021":329476247.71426183,"model2024":422418933.2650987,"wbPaid2021":293731382.457237,"wbPaid2024":245822433.535511},{"code":"BIH","country":"Bosnia and Herzegovina","income":"Upper middle income","model2021":200413679.61065087,"model2024":214984547.57078272,"wbPaid2021":110328943.591715,"wbPaid2024":166192585.049836},{"code":"BWA","country":"Botswana","income":"Upper middle income","model2021":227505177.52389038,"model2024":298669117.4119109,"wbPaid2021":242674148.126351,"wbPaid2024":117708428.952333},{"code":"BRA","country":"Brazil","income":"Upper middle income","model2021":1648668102.3502967,"model2024":1905846383.2833526,"wbPaid2021":1755081763.44,"wbPaid2024":2090043729.72},{"code":"VGB","country":"British Virgin Islands","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"BRN","country":"Brunei Darussalam","income":"High income","model2021":346325395.719642,"model2024":402383125.58966464,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"BGR","country":"Bulgaria","income":"High income","model2021":478101120.60438704,"model2024":563717709.6829638,"wbPaid2021":157230000.0,"wbPaid2024":422870000.0},{"code":"BFA","country":"Burkina Faso","income":"Low income","model2021":330762571.57954186,"model2024":897676283.1053654,"wbPaid2021":202582629.848734,"wbPaid2024":0.0},{"code":"BDI","country":"Burundi","income":"Low income","model2021":245417770.33600014,"model2024":408960060.7927994,"wbPaid2021":17343275.9345198,"wbPaid2024":16189395.1132089},{"code":"CPV","country":"Cabo Verde","income":"Lower middle income","model2021":31022005.898319945,"model2024":35806424.142209016,"wbPaid2021":35347713.947864,"wbPaid2024":32428364.4290558},{"code":"KHM","country":"Cambodia","income":"Lower middle income","model2021":371498282.91679573,"model2024":430270475.6527071,"wbPaid2021":259244148.765836,"wbPaid2024":375772691.401231},{"code":"CMR","country":"Cameroon","income":"Lower middle income","model2021":1432208872.04375,"model2024":1540861571.5801284,"wbPaid2021":40311259.1348725,"wbPaid2024":101289174.997134},{"code":"CAN","country":"Canada","income":"High income","model2021":27918082061.42537,"model2024":34173139956.153828,"wbPaid2021":8156966073.45159,"wbPaid2024":15226924063.3362},{"code":"CYM","country":"Cayman Islands","income":"High income","model2021":145530698.58505362,"model2024":181350249.6492764,"wbPaid2021":492085184.735062,"wbPaid2024":604865970.945303},{"code":"CAF","country":"Central African Republic","income":"Low income","model2021":210795851.5637127,"model2024":253234680.08394036,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"TCD","country":"Chad","income":"Low income","model2021":274773840.8316625,"model2024":334407034.7279741,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"CHL","country":"Chile","income":"High income","model2021":2825142240.9260926,"model2024":3482149118.176735,"wbPaid2021":636974680.335048,"wbPaid2024":690690250.099999},{"code":"CHN","country":"China","income":"Upper middle income","model2021":1933337344.6707551,"model2024":2339752363.702656,"wbPaid2021":22957840161.89,"wbPaid2024":20018921502.97},{"code":"COL","country":"Colombia","income":"Upper middle income","model2021":358142503.96062547,"model2024":487969083.8418914,"wbPaid2021":385718084.432185,"wbPaid2024":406846513.508784},{"code":"COM","country":"Comoros","income":"Lower middle income","model2021":18482835.095830396,"model2024":18656645.82175511,"wbPaid2021":2991508.17116569,"wbPaid2024":0.0},{"code":"COG","country":"Congo","income":"Lower middle income","model2021":347576607.1181927,"model2024":409475799.7308077,"wbPaid2021":78323890.7341008,"wbPaid2024":0.0},{"code":"CRI","country":"Costa Rica","income":"Upper middle income","model2021":1260068718.071145,"model2024":2741008569.706139,"wbPaid2021":541463307.521033,"wbPaid2024":629372103.94621},{"code":"HRV","country":"Croatia","income":"High income","model2021":1309623871.6272213,"model2024":1479173294.5637162,"wbPaid2021":781830977.056276,"wbPaid2024":1966100773.46685},{"code":"CUB","country":"Cuba","income":"Upper middle income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"CUW","country":"Curaçao","income":"High income","model2021":164404715.51921216,"model2024":247532634.06361172,"wbPaid2021":118750222.519553,"wbPaid2024":0.0},{"code":"CYP","country":"Cyprus","income":"High income","model2021":453674090.8223936,"model2024":556803552.1412696,"wbPaid2021":1007380781.79439,"wbPaid2024":1301183062.9188},{"code":"CZE","country":"Czechia","income":"High income","model2021":1899856437.0238025,"model2024":3542672233.452587,"wbPaid2021":5589221375.10528,"wbPaid2024":5114391974.9815},{"code":"CIV","country":"Côte d'Ivoire","income":"Lower middle income","model2021":1733051557.899488,"model2024":1880042957.8159146,"wbPaid2021":1011590171.34568,"wbPaid2024":2047156966.32698},{"code":"COD","country":"Democratic Republic of the Congo","income":"Low income","model2021":210076186.92585984,"model2024":299360194.42906034,"wbPaid2021":730580419.040347,"wbPaid2024":1273112289.76755},{"code":"DNK","country":"Denmark","income":"High income","model2021":2493527275.6256313,"model2024":2884194332.3591175,"wbPaid2021":3723091817.22738,"wbPaid2024":4846027608.56608},{"code":"DJI","country":"Djibouti","income":"Lower middle income","model2021":93534347.90556009,"model2024":135930401.6828121,"wbPaid2021":1130986.20872041,"wbPaid2024":974595.326382363},{"code":"DMA","country":"Dominica","income":"Upper middle income","model2021":18087911.871761207,"model2024":17630354.21853399,"wbPaid2021":12361193.7037037,"wbPaid2024":10057321.4814815},{"code":"DOM","country":"Dominican Republic","income":"Upper middle income","model2021":1046601898.0064139,"model2024":1105326534.2526731,"wbPaid2021":871800000.0,"wbPaid2024":1172500000.0},{"code":"ECU","country":"Ecuador","income":"Upper middle income","model2021":864393467.1032562,"model2024":812595859.1799946,"wbPaid2021":603966053.491175,"wbPaid2024":633389383.180974},{"code":"EGY","country":"Egypt","income":"Lower middle income","model2021":650467952.9629653,"model2024":753086601.5956854,"wbPaid2021":442100000.0,"wbPaid2024":340600000.0},{"code":"SLV","country":"El Salvador","income":"Upper middle income","model2021":191504465.24654543,"model2024":246620420.62045953,"wbPaid2021":261313248.949998,"wbPaid2024":256055246.789998},{"code":"GNQ","country":"Equatorial Guinea","income":"Upper middle income","model2021":1763759570.452572,"model2024":2224146297.0478663,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"ERI","country":"Eritrea","income":"Low income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"EST","country":"Estonia","income":"High income","model2021":425927032.4011841,"model2024":431682360.4048261,"wbPaid2021":286176479.458658,"wbPaid2024":264609460.924121},{"code":"SWZ","country":"Eswatini","income":"Lower middle income","model2021":18502328.380800717,"model2024":18457319.20810896,"wbPaid2021":40599677.0797732,"wbPaid2024":27231435.7111286},{"code":"ETH","country":"Ethiopia","income":"Low income","model2021":275950864.17890936,"model2024":393143394.25498915,"wbPaid2021":14213187.6316243,"wbPaid2024":69266825.7046881},{"code":"FRO","country":"Faroe Islands","income":"High income","model2021":53006434.81127491,"model2024":69103948.66055635,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"FJI","country":"Fiji","income":"Upper middle income","model2021":43563620.280085355,"model2024":45995213.28990628,"wbPaid2021":12191943.4907483,"wbPaid2024":13134508.2714971},{"code":"FIN","country":"Finland","income":"High income","model2021":1748979570.2037218,"model2024":2376323035.827032,"wbPaid2021":1492796218.32611,"wbPaid2024":1573915937.08517},{"code":"FRA","country":"France","income":"High income","model2021":24075210123.55709,"model2024":27282086821.04648,"wbPaid2021":18953440927.1356,"wbPaid2024":19687372015.7165},{"code":"PYF","country":"French Polynesia","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"GAB","country":"Gabon","income":"Upper middle income","model2021":737633899.3250408,"model2024":859381491.7517295,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"GMB","country":"Gambia","income":"Low income","model2021":448107521.2010624,"model2024":571966163.8133439,"wbPaid2021":26836811.3443356,"wbPaid2024":9775889.96815618},{"code":"GEO","country":"Georgia","income":"Upper middle income","model2021":147120118.64792594,"model2024":96073546.73695545,"wbPaid2021":106326823.78,"wbPaid2024":312756323.01},{"code":"DEU","country":"Germany","income":"High income","model2021":29330329696.7982,"model2024":34346105783.954967,"wbPaid2021":21305170353.9682,"wbPaid2024":23662387574.8561},{"code":"GHA","country":"Ghana","income":"Lower middle income","model2021":964713940.6114365,"model2024":1164291225.4151478,"wbPaid2021":793758532.48294,"wbPaid2024":751038880.605219},{"code":"GIB","country":"Gibraltar","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"GRC","country":"Greece","income":"High income","model2021":3303660749.7312317,"model2024":4136566941.4513783,"wbPaid2021":2937563888.47746,"wbPaid2024":3166102429.52203},{"code":"GRL","country":"Greenland","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"GRD","country":"Grenada","income":"Upper middle income","model2021":8014963.454867279,"model2024":8040669.798217766,"wbPaid2021":50335138.5185184,"wbPaid2024":51846078.1481481},{"code":"GUM","country":"Guam","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"GTM","country":"Guatemala","income":"Upper middle income","model2021":284289116.5662982,"model2024":379358119.89956665,"wbPaid2021":19967930.0,"wbPaid2024":34242900.0},{"code":"GIN","country":"Guinea","income":"Lower middle income","model2021":154421646.78928688,"model2024":163975624.67939872,"wbPaid2021":43550000.0,"wbPaid2024":224970000.0},{"code":"GNB","country":"Guinea-Bissau","income":"Low income","model2021":39538032.30713522,"model2024":38812943.77045474,"wbPaid2021":89262870.7997894,"wbPaid2024":84677703.0142848},{"code":"GUY","country":"Guyana","income":"High income","model2021":9866552.844168546,"model2024":20063453.491015024,"wbPaid2021":196704925.737235,"wbPaid2024":0.0},{"code":"HTI","country":"Haiti","income":"Lower middle income","model2021":48664473.549979076,"model2024":55684207.42219367,"wbPaid2021":678498745.922534,"wbPaid2024":770001370.612673},{"code":"HND","country":"Honduras","income":"Lower middle income","model2021":140595606.08064526,"model2024":182881671.64723757,"wbPaid2021":343863185.266492,"wbPaid2024":346096592.959151},{"code":"HKG","country":"Hong Kong SAR, China","income":"High income","model2021":6570778480.027166,"model2024":8883950868.335165,"wbPaid2021":905015570.978271,"wbPaid2024":1087260113.57128},{"code":"HUN","country":"Hungary","income":"High income","model2021":2043598089.7246175,"model2024":2253023221.7783012,"wbPaid2021":992001955.544074,"wbPaid2024":1204209377.36539},{"code":"ISL","country":"Iceland","income":"High income","model2021":266421803.1538549,"model2024":333226861.72556883,"wbPaid2021":375515540.019397,"wbPaid2024":644164466.739506},{"code":"IND","country":"India","income":"Lower middle income","model2021":8197443173.263286,"model2024":9701883589.450203,"wbPaid2021":8181397793.02489,"wbPaid2024":12072300699.6765},{"code":"IDN","country":"Indonesia","income":"Upper middle income","model2021":482540420.88260496,"model2024":812685679.5421981,"wbPaid2021":4343383214.32524,"wbPaid2024":11128256369.4001},{"code":"IRN","country":"Iran","income":"Upper middle income","model2021":207485685.4950324,"model2024":212984955.42755318,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"IRQ","country":"Iraq","income":"Upper middle income","model2021":198787775.9019933,"model2024":169437621.22996002,"wbPaid2021":852400000.0,"wbPaid2024":735700000.0},{"code":"IRL","country":"Ireland","income":"High income","model2021":2557841562.897204,"model2024":3734118081.0890613,"wbPaid2021":2112665543.00144,"wbPaid2024":2689699999.58518},{"code":"IMN","country":"Isle of Man","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"ISR","country":"Israel","income":"High income","model2021":5398425413.385294,"model2024":6160224384.894857,"wbPaid2021":2940700000.0,"wbPaid2024":1373100000.0},{"code":"ITA","country":"Italy","income":"High income","model2021":21580615181.989243,"model2024":24322568577.841915,"wbPaid2021":12102994290.1154,"wbPaid2024":12361405831.2232},{"code":"JAM","country":"Jamaica","income":"Upper middle income","model2021":53956163.70179608,"model2024":64953591.990087695,"wbPaid2021":346664665.401983,"wbPaid2024":312990456.269025},{"code":"JPN","country":"Japan","income":"High income","model2021":9902604507.694513,"model2024":12032523181.003143,"wbPaid2021":6133593629.67698,"wbPaid2024":6071789020.71939},{"code":"JOR","country":"Jordan","income":"Lower middle income","model2021":6419970969.214938,"model2024":4684709016.330558,"wbPaid2021":531971830.985915,"wbPaid2024":576901408.450704},{"code":"KAZ","country":"Kazakhstan","income":"Upper middle income","model2021":5230881728.022818,"model2024":7891750199.899123,"wbPaid2021":2591298520.29506,"wbPaid2024":2696742658.69186},{"code":"KEN","country":"Kenya","income":"Lower middle income","model2021":1233637339.4616127,"model2024":1491144652.097837,"wbPaid2021":8973960.1604371,"wbPaid2024":4935594.89348175},{"code":"KIR","country":"Kiribati","income":"Lower middle income","model2021":2929987.7800051617,"model2024":3309073.4111215477,"wbPaid2021":1198951.33016691,"wbPaid2024":1055952.750302},{"code":"PRK","country":"Korea, Dem. People's Rep.","income":"Low income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"KOR","country":"Korea, Rep.","income":"High income","model2021":5312002479.356827,"model2024":6835159791.57015,"wbPaid2021":11816200000.0,"wbPaid2024":14332800000.0},{"code":"KWT","country":"Kuwait","income":"High income","model2021":14710114132.572794,"model2024":18733225504.85793,"wbPaid2021":18468103779.7774,"wbPaid2024":14168984683.1728},{"code":"KGZ","country":"Kyrgyzstan","income":"Lower middle income","model2021":323436829.9255234,"model2024":233003691.54920012,"wbPaid2021":584525311.886809,"wbPaid2024":0.0},{"code":"LAO","country":"Lao People's Democratic Republic","income":"Lower middle income","model2021":127561049.44941783,"model2024":161607104.9366536,"wbPaid2021":126894380.188019,"wbPaid2024":141320000.0},{"code":"LVA","country":"Latvia","income":"High income","model2021":405858672.3746958,"model2024":300638026.2977829,"wbPaid2021":397963583.405483,"wbPaid2024":576778154.58154},{"code":"LBN","country":"Lebanon","income":"Lower middle income","model2021":698574029.1582628,"model2024":428919110.1605972,"wbPaid2021":1928784937.17054,"wbPaid2024":0.0},{"code":"LSO","country":"Lesotho","income":"Lower middle income","model2021":15929550.884335604,"model2024":22951718.609387834,"wbPaid2021":3365142.71755066,"wbPaid2024":3041602.82220346},{"code":"LBR","country":"Liberia","income":"Low income","model2021":119138105.06680024,"model2024":145360871.2665832,"wbPaid2021":138278535.56,"wbPaid2024":150809859.05},{"code":"LBY","country":"Libya","income":"Upper middle income","model2021":1413680482.7109604,"model2024":1284292589.3087037,"wbPaid2021":900400000.0,"wbPaid2024":0.0},{"code":"LIE","country":"Liechtenstein","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"LTU","country":"Lithuania","income":"High income","model2021":299746901.00023216,"model2024":578550507.3056273,"wbPaid2021":403262248.855699,"wbPaid2024":676057345.404412},{"code":"LUX","country":"Luxembourg","income":"High income","model2021":1879874293.3316317,"model2024":2178438572.3715205,"wbPaid2021":16658236753.9984,"wbPaid2024":18742471949.7419},{"code":"MAC","country":"Macao SAR, China","income":"High income","model2021":887065443.5072143,"model2024":1243799927.2258596,"wbPaid2021":2041370678.85715,"wbPaid2024":2453364868.01716},{"code":"MDG","country":"Madagascar","income":"Low income","model2021":206232801.51504526,"model2024":254341236.5435259,"wbPaid2021":54091502.4935772,"wbPaid2024":86161330.7510869},{"code":"MWI","country":"Malawi","income":"Low income","model2021":152789185.22668943,"model2024":208481735.52883548,"wbPaid2021":166185748.443882,"wbPaid2024":198332605.249944},{"code":"MYS","country":"Malaysia","income":"Upper middle income","model2021":10202185268.767294,"model2024":14298241705.479952,"wbPaid2021":8634941973.63082,"wbPaid2024":10842907209.0832},{"code":"MDV","country":"Maldives","income":"Upper middle income","model2021":201559354.342394,"model2024":273454738.9474595,"wbPaid2021":496466121.731608,"wbPaid2024":622562741.283354},{"code":"MLI","country":"Mali","income":"Low income","model2021":415556681.5213796,"model2024":782924557.0987573,"wbPaid2021":235014952.044303,"wbPaid2024":266086008.477669},{"code":"MLT","country":"Malta","income":"High income","model2021":264246999.2977487,"model2024":556403362.8374764,"wbPaid2021":151706277.699134,"wbPaid2024":226413906.645386},{"code":"MHL","country":"Marshall Islands","income":"Upper middle income","model2021":15062523.21762694,"model2024":16324092.737802822,"wbPaid2021":13546081.0876279,"wbPaid2024":15885159.01959},{"code":"MRT","country":"Mauritania","income":"Lower middle income","model2021":202361386.8539942,"model2024":219008637.78757986,"wbPaid2021":22383067.1799314,"wbPaid2024":69298165.4631699},{"code":"MUS","country":"Mauritius","income":"Upper middle income","model2021":105112674.87384942,"model2024":135232470.0590149,"wbPaid2021":1357599987.5364,"wbPaid2024":1122177192.62217},{"code":"MEX","country":"Mexico","income":"Upper middle income","model2021":3588717838.4734154,"model2024":5412434349.892518,"wbPaid2021":767243593.0,"wbPaid2024":1308403827.0},{"code":"FSM","country":"Micronesia","income":"Lower middle income","model2021":37026552.188741215,"model2024":36981793.9961146,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"MDA","country":"Moldova","income":"Upper middle income","model2021":176237078.0787588,"model2024":267807258.58049822,"wbPaid2021":293470000.0,"wbPaid2024":512335316.64},{"code":"MCO","country":"Monaco","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"MNG","country":"Mongolia","income":"Upper middle income","model2021":39845717.66041026,"model2024":48949917.536032565,"wbPaid2021":143896890.286708,"wbPaid2024":187474356.441073},{"code":"MNE","country":"Montenegro","income":"Upper middle income","model2021":222606286.56503052,"model2024":305047584.08499765,"wbPaid2021":103808013.877626,"wbPaid2024":196265022.065324},{"code":"MAR","country":"Morocco","income":"Lower middle income","model2021":747581843.9444461,"model2024":917896610.2754737,"wbPaid2021":175462338.763325,"wbPaid2024":186442479.265966},{"code":"MOZ","country":"Mozambique","income":"Low income","model2021":418790666.0834036,"model2024":515279983.8969356,"wbPaid2021":211763444.019275,"wbPaid2024":196407527.531777},{"code":"MMR","country":"Myanmar","income":"Lower middle income","model2021":201922604.51684338,"model2024":294454700.1744832,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"NAM","country":"Namibia","income":"Upper middle income","model2021":163497264.822554,"model2024":201250814.66804513,"wbPaid2021":56898372.8543326,"wbPaid2024":80920026.4169839},{"code":"NRU","country":"Nauru","income":"High income","model2021":4393050.921059671,"model2024":5237224.571838304,"wbPaid2021":16544592.0521021,"wbPaid2024":26180447.6958425},{"code":"NPL","country":"Nepal","income":"Lower middle income","model2021":1757259179.0268824,"model2024":2473109475.1791563,"wbPaid2021":44025033.9297465,"wbPaid2024":81687530.7216342},{"code":"NLD","country":"Netherlands","income":"High income","model2021":7776547268.790011,"model2024":10000033516.75527,"wbPaid2021":15320684729.798,"wbPaid2024":18125742438.5825},{"code":"NCL","country":"New Caledonia","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"NZL","country":"New Zealand","income":"High income","model2021":3335685881.7331567,"model2024":4519410996.436073,"wbPaid2021":900531667.107737,"wbPaid2024":1169619979.51191},{"code":"NIC","country":"Nicaragua","income":"Lower middle income","model2021":252900219.8538976,"model2024":285686935.6383394,"wbPaid2021":105700000.0,"wbPaid2024":145700000.0},{"code":"NER","country":"Niger","income":"Low income","model2021":1303895784.4413097,"model2024":1592779731.7605195,"wbPaid2021":194871095.26186,"wbPaid2024":466152984.305383},{"code":"NGA","country":"Nigeria","income":"Lower middle income","model2021":915733037.966796,"model2024":1261381110.5205185,"wbPaid2021":82545294.2181415,"wbPaid2024":92301297.5868966},{"code":"MKD","country":"North Macedonia","income":"Upper middle income","model2021":286814856.51106316,"model2024":366866732.9120792,"wbPaid2021":26035886.0,"wbPaid2024":24147739.2034666},{"code":"MNP","country":"Northern Mariana Islands","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"NOR","country":"Norway","income":"High income","model2021":3431069207.8338656,"model2024":4360171655.799155,"wbPaid2021":3990222811.31934,"wbPaid2024":5701801444.84696},{"code":"OMN","country":"Oman","income":"High income","model2021":6998936427.522198,"model2024":10977185770.974823,"wbPaid2021":8117672049.78106,"wbPaid2024":9184884710.013},{"code":"PAK","country":"Pakistan","income":"Lower middle income","model2021":63867096.93048819,"model2024":74645519.17277193,"wbPaid2021":231000000.0,"wbPaid2024":352000000.0},{"code":"PLW","country":"Palau","income":"High income","model2021":29593881.75653763,"model2024":31346270.50649341,"wbPaid2021":14611000.0,"wbPaid2024":0.0},{"code":"PAN","country":"Panama","income":"High income","model2021":674271292.003847,"model2024":1234608243.2350802,"wbPaid2021":550866867.86,"wbPaid2024":596169824.0},{"code":"PNG","country":"Papua New Guinea","income":"Lower middle income","model2021":65612139.188088566,"model2024":101991264.07350716,"wbPaid2021":179585340.0,"wbPaid2024":83666253.003242},{"code":"PRY","country":"Paraguay","income":"Upper middle income","model2021":259856784.82375482,"model2024":286912947.52252465,"wbPaid2021":65039100.4626414,"wbPaid2024":79507130.4268417},{"code":"PER","country":"Peru","income":"Upper middle income","model2021":350850535.8950091,"model2024":551765445.4328955,"wbPaid2021":173395525.600227,"wbPaid2024":331196017.392857},{"code":"PHL","country":"Philippines","income":"Lower middle income","model2021":240847469.23086926,"model2024":313737152.30545187,"wbPaid2021":255923482.929738,"wbPaid2024":268879630.201638},{"code":"POL","country":"Poland","income":"High income","model2021":2686378432.563997,"model2024":4211952856.748512,"wbPaid2021":9418000000.0,"wbPaid2024":7815000000.0},{"code":"PRT","country":"Portugal","income":"High income","model2021":3202522711.449147,"model2024":3799303894.040209,"wbPaid2021":388891157.142857,"wbPaid2024":482204902.940125},{"code":"PRI","country":"Puerto Rico","income":"High income","model2021":675357089.237692,"model2024":674439848.287044,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"QAT","country":"Qatar","income":"High income","model2021":12292100711.653824,"model2024":14800912803.274614,"wbPaid2021":10966208791.2087,"wbPaid2024":11512087912.0878},{"code":"ROU","country":"Romania","income":"High income","model2021":2277896672.6222944,"model2024":3243257526.772061,"wbPaid2021":642167674.339188,"wbPaid2024":2108527424.46345},{"code":"RUS","country":"Russian Federation","income":"High income","model2021":21150057782.61701,"model2024":18134000802.025448,"wbPaid2021":16819550000.0,"wbPaid2024":8270710000.0},{"code":"RWA","country":"Rwanda","income":"Low income","model2021":420912869.7013339,"model2024":616246837.1673299,"wbPaid2021":73393716.7471407,"wbPaid2024":100015536.116138},{"code":"LCA","country":"Saint Lucia","income":"Upper middle income","model2021":16259604.51370522,"model2024":17004715.85761406,"wbPaid2021":14417590.7407407,"wbPaid2024":15740166.6666666},{"code":"VCT","country":"Saint Vincent and the Grenadines","income":"Upper middle income","model2021":8980844.492669446,"model2024":8635591.162360707,"wbPaid2021":8083617.77777778,"wbPaid2024":15486465.5555555},{"code":"WSM","country":"Samoa","income":"Lower middle income","model2021":3690992.35148571,"model2024":4001174.857353143,"wbPaid2021":25873304.3769797,"wbPaid2024":47900674.606499},{"code":"SMR","country":"San Marino","income":"High income","model2021":17089909.869931698,"model2024":19847703.099446032,"wbPaid2021":216150496.607616,"wbPaid2024":0.0},{"code":"STP","country":"Sao Tome and Principe","income":"Lower middle income","model2021":1753654.2282444087,"model2024":1695129.0102477327,"wbPaid2021":6446503.56844241,"wbPaid2024":2620904.13945836},{"code":"SAU","country":"Saudi Arabia","income":"High income","model2021":47519989614.00819,"model2024":53339225447.77904,"wbPaid2021":40728488828.8255,"wbPaid2024":46564898867.2613},{"code":"SEN","country":"Senegal","income":"Lower middle income","model2021":457555402.0464378,"model2024":586713678.4803189,"wbPaid2021":398853371.972356,"wbPaid2024":0.0},{"code":"SRB","country":"Serbia","income":"Upper middle income","model2021":2677867787.660277,"model2024":3215419893.0723276,"wbPaid2021":470794123.04512,"wbPaid2024":1103748226.72123},{"code":"SYC","country":"Seychelles","income":"High income","model2021":54676061.049274154,"model2024":70705998.6004846,"wbPaid2021":48905267.2389921,"wbPaid2024":65478962.7693499},{"code":"SLE","country":"Sierra Leone","income":"Low income","model2021":74799935.32276355,"model2024":85844627.85561505,"wbPaid2021":8647625.54576691,"wbPaid2024":9682869.67405271},{"code":"SGP","country":"Singapore","income":"High income","model2021":5257200020.52287,"model2024":7271730031.113069,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"SXM","country":"Sint Maarten (Dutch part)","income":"High income","model2021":94644709.1610241,"model2024":96754858.80785055,"wbPaid2021":88420715.2122905,"wbPaid2024":0.0},{"code":"SVK","country":"Slovak Republic","income":"High income","model2021":966984085.5223557,"model2024":1085777948.3130643,"wbPaid2021":565021521.97987,"wbPaid2024":566205911.252698},{"code":"SVN","country":"Slovenia","income":"High income","model2021":981673177.7107263,"model2024":1181482334.0009544,"wbPaid2021":418062747.107358,"wbPaid2024":574313501.558163},{"code":"SLB","country":"Solomon Islands","income":"Lower middle income","model2021":5070397.738868495,"model2024":3984583.6613230174,"wbPaid2021":55072692.2029838,"wbPaid2024":51778697.5697614},{"code":"SOM","country":"Somalia","income":"Low income","model2021":6680979.10320544,"model2024":133326801.663749,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"ZAF","country":"South Africa","income":"Upper middle income","model2021":3974736040.15981,"model2024":4822839838.517361,"wbPaid2021":1066450455.4384,"wbPaid2024":993227782.63903},{"code":"SSD","country":"South Sudan","income":"Low income","model2021":0.0,"model2024":0.0,"wbPaid2021":9710000.0,"wbPaid2024":0.0},{"code":"ESP","country":"Spain","income":"High income","model2021":22047010922.27526,"model2024":29081823411.207783,"wbPaid2021":265498707.215007,"wbPaid2024":588213669.354267},{"code":"LKA","country":"Sri Lanka","income":"Lower middle income","model2021":136836545.70890993,"model2024":179373254.01750672,"wbPaid2021":343600000.0,"wbPaid2024":166050273.61},{"code":"KNA","country":"St. Kitts and Nevis","income":"High income","model2021":14425215.973734053,"model2024":12792310.359419674,"wbPaid2021":20099498.8888888,"wbPaid2024":27690991.8518518},{"code":"SDN","country":"Sudan","income":"Low income","model2021":313561897.3924019,"model2024":846177143.0851258,"wbPaid2021":175696166.979737,"wbPaid2024":0.0},{"code":"SUR","country":"Suriname","income":"Upper middle income","model2021":93650962.3518616,"model2024":117877790.532539,"wbPaid2021":105345911.520603,"wbPaid2024":90144564.4776661},{"code":"SWE","country":"Sweden","income":"High income","model2021":5459373370.851085,"model2024":6626995621.978685,"wbPaid2021":3843954855.69029,"wbPaid2024":4052840483.2597},{"code":"CHE","country":"Switzerland","income":"High income","model2021":10973772223.044407,"model2024":11947236794.509035,"wbPaid2021":32217974102.82,"wbPaid2024":40110118771.9646},{"code":"SYR","country":"Syrian Arab Republic","income":"Low income","model2021":585453879.415136,"model2024":146961760.39487478,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"TJK","country":"Tajikistan","income":"Lower middle income","model2021":318714773.5438517,"model2024":183367496.61022508,"wbPaid2021":166749288.78,"wbPaid2024":586128284.402399},{"code":"TZA","country":"Tanzania","income":"Lower middle income","model2021":290455343.6376994,"model2024":403875837.36877626,"wbPaid2021":122238215.941079,"wbPaid2024":681881764.075973},{"code":"THA","country":"Thailand","income":"Upper middle income","model2021":3633122163.2042503,"model2024":4000394554.154165,"wbPaid2021":6591416730.96505,"wbPaid2024":8034488795.69298},{"code":"TLS","country":"Timor-Leste","income":"Lower middle income","model2021":18837188.452810213,"model2024":27619258.09812896,"wbPaid2021":97042472.8270919,"wbPaid2024":118507877.1885},{"code":"TGO","country":"Togo","income":"Low income","model2021":438571196.0963911,"model2024":504659639.724454,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"TON","country":"Tonga","income":"Upper middle income","model2021":8520361.17764114,"model2024":9608651.675823169,"wbPaid2021":31130549.450487,"wbPaid2024":27764391.5845574},{"code":"TTO","country":"Trinidad and Tobago","income":"High income","model2021":104144001.26243971,"model2024":151366438.28038734,"wbPaid2021":195912826.368674,"wbPaid2024":150105444.382156},{"code":"TUN","country":"Tunisia","income":"Lower middle income","model2021":216646678.35621482,"model2024":253493480.1922499,"wbPaid2021":31505959.3398351,"wbPaid2024":70343768.1254526},{"code":"TUR","country":"Turkey","income":"Upper middle income","model2021":6134496584.598065,"model2024":9138276229.762533,"wbPaid2021":631000000.0,"wbPaid2024":1534000000.0},{"code":"TKM","country":"Turkmenistan","income":"Upper middle income","model2021":417935606.2208262,"model2024":548087768.1172788,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"TCA","country":"Turks and Caicos Islands","income":"High income","model2021":59104789.20434616,"model2024":66975943.53942322,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"TUV","country":"Tuvalu","income":"Upper middle income","model2021":399647.8175275561,"model2024":409152.4592588106,"wbPaid2021":2419015.41145157,"wbPaid2024":0.0},{"code":"UGA","country":"Uganda","income":"Low income","model2021":530736463.8679481,"model2024":805098746.2609366,"wbPaid2021":222543096.669673,"wbPaid2024":211063479.741178},{"code":"UKR","country":"Ukraine","income":"Upper middle income","model2021":6540944934.213327,"model2024":4059386395.73355,"wbPaid2021":1083000000.0,"wbPaid2024":193000000.0},{"code":"ARE","country":"United Arab Emirates","income":"High income","model2021":36202691750.27368,"model2024":48314136320.71855,"wbPaid2021":0.0,"wbPaid2024":58461538461.5384},{"code":"GBR","country":"United Kingdom","income":"High income","model2021":33282616403.38202,"model2024":42815220212.753654,"wbPaid2021":10273648447.2563,"wbPaid2024":12271093645.5614},{"code":"USA","country":"United States","income":"High income","model2021":190287258231.89493,"model2024":231691109587.63968,"wbPaid2021":73551000000.0,"wbPaid2024":103179000000.0},{"code":"URY","country":"Uruguay","income":"High income","model2021":162638716.93127018,"model2024":249982641.69973585,"wbPaid2021":117747674.759777,"wbPaid2024":137570760.527604},{"code":"UZB","country":"Uzbekistan","income":"Lower middle income","model2021":1608891047.8730567,"model2024":751634950.7981683,"wbPaid2021":447730939.372381,"wbPaid2024":737254767.165282},{"code":"VUT","country":"Vanuatu","income":"Lower middle income","model2021":13611473.32126038,"model2024":16951603.020365678,"wbPaid2021":7823863.30458607,"wbPaid2024":0.0},{"code":"VEN","country":"Venezuela","income":"Not classified","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"VNM","country":"Viet Nam","income":"Lower middle income","model2021":550033033.146136,"model2024":953700943.2009807,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"VIR","country":"Virgin Islands (U.S.)","income":"High income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"PSE","country":"West Bank and Gaza Strip","income":"Lower middle income","model2021":1359112925.6015406,"model2024":1495302535.03995,"wbPaid2021":32247853.7504225,"wbPaid2024":9330391.39838291},{"code":"YEM","country":"Yemen","income":"Low income","model2021":0.0,"model2024":0.0,"wbPaid2021":0.0,"wbPaid2024":0.0},{"code":"ZMB","country":"Zambia","income":"Lower middle income","model2021":142904994.77964658,"model2024":257129810.38400668,"wbPaid2021":122331951.706984,"wbPaid2024":118804959.83059},{"code":"ZWE","country":"Zimbabwe","income":"Lower middle income","model2021":242702855.9631083,"model2024":258554717.8446495,"wbPaid2021":25601715.6704778,"wbPaid2024":43758724.0172}];
+  const wrapper = document.getElementById('remitViz');
+  const chartWrap = document.getElementById('chartWrap');
+  const cardsEl = document.getElementById('cards');
+  const tooltip = document.getElementById('tooltip');
+  const chartTitle = document.getElementById('chartTitle');
+  const chartCaption = document.getElementById('chartCaption');
+  const legendEl = document.getElementById('legend');
+
+  const COLORS = {
+    teal: '#0B4C5B',
+    lightTeal: '#006970',
+    gold: '#FFB52C',
+    lightGold: '#FEE8BF',
+    tealGray: '#85A5AD',
+    lightGray: '#DFE0E2',
+    darkGray: '#394649',
+    tealBlack: '#1A272A',
+    green: '#00896C',
+    red: '#D15553',
+    blue: '#2D99B5'
+  };
+
+  const state = { year: '2024', incomeGroup: 'ALL', country: 'ALL' };
+  const incomeOrder = ['High income', 'Upper middle income', 'Lower middle income', 'Low income', 'Not classified'];
+  const incomeOptions = [{ value: 'ALL', label: 'All income groups' }]
+    .concat(incomeOrder.filter(g => rawData.some(d => d.income === g)).map(g => ({ value: g, label: g })));
+
+  function valueOf(d, series) {
+    if (series === 'model') return Number(d['model' + state.year]) || 0;
+    return Number(d['wbPaid' + state.year]) || 0;
+  }
+  function diffOf(d) { return valueOf(d, 'model') - valueOf(d, 'wb'); }
+  function ratioOf(d) { const wb = valueOf(d, 'wb'); return wb > 0 ? valueOf(d, 'model') / wb : null; }
+  function directionOf(d) {
+    const model = valueOf(d, 'model'), wb = valueOf(d, 'wb');
+    if (model === 0 && wb === 0) return 'similar';
+    if (wb === 0 && model > 0) return 'modelHigher';
+    if (model === 0 && wb > 0) return 'wbHigher';
+    const pct = (model - wb) / wb;
+    if (Math.abs(pct) <= 0.10) return 'similar';
+    return pct > 0 ? 'modelHigher' : 'wbHigher';
+  }
+  function directionLabel(d) {
+    const dir = directionOf(d);
+    if (dir === 'modelHigher') return 'Model higher';
+    if (dir === 'wbHigher') return 'World Bank higher';
+    return 'Broadly similar';
+  }
+  function directionColor(d) {
+    const dir = directionOf(d);
+    if (dir === 'modelHigher') return COLORS.teal;
+    if (dir === 'wbHigher') return COLORS.gold;
+    return COLORS.tealGray;
+  }
+  function formatUsd(value) {
+    if (value == null || Number.isNaN(value)) return 'N/A';
+    const abs = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    if (abs >= 1e12) return `${sign}${(abs / 1e12).toFixed(abs >= 10e12 ? 0 : 1)}tn`;
+    if (abs >= 1e9) return `${sign}${(abs / 1e9).toFixed(abs >= 10e9 ? 0 : 1)}bn`;
+    if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(abs >= 10e6 ? 0 : 1)}m`;
+    if (abs >= 1e3) return `${sign}${Math.round(abs).toLocaleString()}`;
+    return `${sign}${Math.round(abs).toLocaleString()}`;
+  }
+  function formatUsdWithDollar(value) {
+    const formatted = formatUsd(value);
+    if (formatted === 'N/A') return formatted;
+    return (formatted.startsWith('-') ? '-$' + formatted.slice(1) : '$' + formatted);
+  }
+  function formatCount(value) { return Math.round(value).toLocaleString(); }
+  function formatRatio(r) { return r == null || !Number.isFinite(r) ? 'N/A' : `${r.toFixed(r >= 10 ? 1 : 2)}×`; }
+  function formatPctGap(pct) {
+    if (pct == null || !Number.isFinite(pct)) return 'N/A';
+    const abs = Math.abs(pct);
+    const digits = abs >= 10 ? 0 : 1;
+    return `${pct > 0 ? '+' : pct < 0 ? '-' : ''}${abs.toFixed(digits)}%`;
+  }
+  function gapPhrase(gap, base) {
+    if (Math.abs(gap) < 1) return 'no gap';
+    if (base > 0) {
+      const pct = Math.abs(gap / base * 100);
+      const digits = pct >= 10 ? 0 : 1;
+      return gap > 0 ? `model higher by ${pct.toFixed(digits)}%` : `model lower by ${pct.toFixed(digits)}%`;
+    }
+    return gap > 0 ? 'model higher; WB reports zero' : 'World Bank higher; model reports zero';
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+  class SearchableSelect {
+    constructor(root, options, value, onChange, placeholder) {
+      this.root = root;
+      this.options = options;
+      this.value = value;
+      this.onChange = onChange;
+      this.placeholder = placeholder || 'Search';
+      this.renderShell();
+      this.updateOptions(options, value);
+    }
+    renderShell() {
+      this.root.innerHTML = `<div class="combo"><button type="button" class="combo__button" aria-haspopup="listbox" aria-expanded="false"></button><div class="combo__menu" hidden><input class="combo__search" type="text" autocomplete="off"><div class="combo__list" role="listbox"></div></div></div>`;
+      this.combo = this.root.querySelector('.combo');
+      this.button = this.root.querySelector('.combo__button');
+      this.menu = this.root.querySelector('.combo__menu');
+      this.search = this.root.querySelector('.combo__search');
+      this.list = this.root.querySelector('.combo__list');
+      this.search.placeholder = this.placeholder;
+      this.button.addEventListener('click', () => this.toggle());
+      this.search.addEventListener('input', () => this.renderList());
+      this.search.addEventListener('keydown', e => { if (e.key === 'Escape') this.close(); });
+      document.addEventListener('click', e => { if (!this.combo.contains(e.target)) this.close(); });
+    }
+    updateOptions(options, value) {
+      this.options = options.slice();
+      this.value = value;
+      const selected = this.options.find(o => o.value === this.value) || this.options[0];
+      if (selected) this.value = selected.value;
+      this.button.textContent = selected ? selected.label : '';
+      this.renderList();
+    }
+    toggle() { this.menu.hidden ? this.open() : this.close(); }
+    open() {
+      this.menu.hidden = false;
+      this.button.setAttribute('aria-expanded', 'true');
+      this.search.value = '';
+      this.renderList();
+      window.requestAnimationFrame(() => this.search.focus());
+    }
+    close() {
+      this.menu.hidden = true;
+      this.button.setAttribute('aria-expanded', 'false');
+    }
+    renderList() {
+      const q = this.search.value.trim().toLowerCase();
+      const filtered = this.options.filter(o => o.label.toLowerCase().includes(q));
+      if (!filtered.length) { this.list.innerHTML = `<div class="combo__empty">No matches</div>`; return; }
+      this.list.innerHTML = filtered.map(o => `<button type="button" class="combo__option" role="option" data-value="${escapeHtml(o.value)}" aria-selected="${o.value === this.value ? 'true' : 'false'}">${escapeHtml(o.label)}</button>`).join('');
+      this.list.querySelectorAll('.combo__option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-value');
+          const opt = this.options.find(o => o.value === val);
+          if (!opt) return;
+          this.value = opt.value;
+          this.button.textContent = opt.label;
+          this.close();
+          this.onChange(opt.value);
+        });
+      });
+    }
+  }
+
+  const incomeSelect = new SearchableSelect(document.getElementById('incomeSelect'), incomeOptions, state.incomeGroup, val => {
+    state.incomeGroup = val;
+    const valid = countryOptions().some(o => o.value === state.country);
+    if (!valid) state.country = 'ALL';
+    countrySelect.updateOptions(countryOptions(), state.country);
+    updateAllViews();
+  }, 'Search income group');
+
+  function countriesForIncome() {
+    return rawData.filter(d => state.incomeGroup === 'ALL' || d.income === state.incomeGroup)
+      .sort((a,b) => a.country.localeCompare(b.country));
+  }
+  function countryOptions() {
+    return [{ value: 'ALL', label: 'All countries' }].concat(countriesForIncome().map(d => ({ value: d.code, label: d.country })));
+  }
+  const countrySelect = new SearchableSelect(document.getElementById('countrySelect'), countryOptions(), state.country, val => {
+    state.country = val;
+    updateAllViews();
+  }, 'Search country');
+
+  document.getElementById('year2021').addEventListener('click', () => setYear('2021'));
+  document.getElementById('year2024').addEventListener('click', () => setYear('2024'));
+  function setYear(year) {
+    state.year = year;
+    document.getElementById('year2021').setAttribute('aria-pressed', year === '2021');
+    document.getElementById('year2024').setAttribute('aria-pressed', year === '2024');
+    updateAllViews();
+  }
+
+  function contextData() { return countriesForIncome(); }
+  function summaryData() {
+    const context = contextData();
+    if (state.country === 'ALL') return context;
+    return context.filter(d => d.code === state.country);
+  }
+  function selectedCountry() { return rawData.find(d => d.code === state.country) || null; }
+
+  function updateCards() {
+    const data = summaryData();
+    const totalModel = data.reduce((s,d) => s + valueOf(d, 'model'), 0);
+    const totalWb = data.reduce((s,d) => s + valueOf(d, 'wb'), 0);
+    const gap = totalModel - totalWb;
+    const country = selectedCountry();
+    const gapQualifier = gapPhrase(gap, totalWb);
+    const countFig = state.country === 'ALL' ? formatCount(data.length) : country.country;
+    const countQualifier = state.country === 'ALL' ? 'countries compared' : 'selected country';
+    const cards = [
+      { label: 'Coverage', figure: countFig, qualifier: countQualifier },
+      { label: 'Modelled outflows', figure: formatUsdWithDollar(totalModel), qualifier: 'remittances sent' },
+      { label: 'World Bank outflows', figure: formatUsdWithDollar(totalWb), qualifier: 'remittances sent' },
+      { label: 'Model–WB gap', figure: formatUsdWithDollar(gap), qualifier: gapQualifier }
+    ];
+    cardsEl.innerHTML = cards.map(c => `<div class="remit-card"><div class="remit-card__label">${escapeHtml(c.label)}</div><div class="remit-card__line"><span class="remit-card__figure">${escapeHtml(c.figure)}</span><span class="remit-card__qualifier">${escapeHtml(c.qualifier)}</span></div></div>`).join('');
+  }
+
+  function updateTitleAndLegend() {
+    const incomeLabel = incomeOptions.find(o => o.value === state.incomeGroup)?.label || state.incomeGroup;
+    const country = selectedCountry();
+    if (state.country === 'ALL') {
+      chartTitle.textContent = 'Remittances sent: model versus World Bank';
+      chartCaption.textContent = '';
+    } else {
+      chartTitle.textContent = `${country.country} in context: model versus World Bank`;
+      chartCaption.textContent = '';
+    }
+    legendEl.innerHTML = [
+      `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.teal}"></span>Model higher</span>`,
+      `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.tealGray}"></span>Broadly similar</span>`,
+      `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.gold}"></span>World Bank higher</span>`,
+      state.country !== 'ALL' ? `<span class="remit-viz__legend-item"><span class="remit-viz__swatch" style="background:${COLORS.red}"></span>Selected country</span>` : ''
+    ].join('');
+  }
+
+  function maxNice(v) {
+    const ticks = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13];
+    return ticks.find(t => t >= v) || 1e13;
+  }
+  function axisTicks(maxVal, width) {
+    const base = [0, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13].filter(t => t <= maxVal);
+    if (!base.includes(maxVal)) base.push(maxVal);
+    const small = width < 600;
+    if (!small || base.length <= 6) return base;
+    return base.filter((_, i) => i === 0 || i === base.length - 1 || i % 2 === 0);
+  }
+  const SCALE_CONSTANT = 1e6;
+  function scaleLog(v, domainMax, rangeMin, rangeMax) {
+    const safe = Math.max(0, v);
+    const t = Math.log1p(safe / SCALE_CONSTANT) / Math.log1p(domainMax / SCALE_CONSTANT);
+    return rangeMin + t * (rangeMax - rangeMin);
+  }
+  function makeEl(tag, attrs, text) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attrs || {}).forEach(([k,v]) => el.setAttribute(k, v));
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function addPillLabel(parent, attrs, text, rectClass) {
+    const group = makeEl('g', { class: 'label-group' });
+    const label = makeEl('text', attrs, text);
+    group.appendChild(label);
+    parent.appendChild(group);
+    try {
+      const box = label.getBBox();
+      const padX = 4.5;
+      const padY = 2.5;
+      const rect = makeEl('rect', {
+        x: box.x - padX,
+        y: box.y - padY,
+        width: box.width + padX * 2,
+        height: box.height + padY * 2,
+        rx: 4,
+        ry: 4,
+        class: rectClass
+      });
+      group.insertBefore(rect, label);
+    } catch (e) {
+      // If getBBox is unavailable in a host environment, the text label still renders safely.
+    }
+    return group;
+  }
+
+  function estimatedLabelBox(text, x, y, anchor) {
+    const width = Math.max(44, text.length * 6.2 + 10);
+    const height = 16;
+    let left = x;
+    if (anchor === 'end') left = x - width;
+    if (anchor === 'middle') left = x - width / 2;
+    return { x: left, y: y - 12, width, height };
+  }
+  function boxesOverlap(a, b, pad = 4) {
+    return a.x < b.x + b.width + pad && a.x + a.width + pad > b.x && a.y < b.y + b.height + pad && a.y + a.height + pad > b.y;
+  }
+  function clampLabel(text, candidate, innerW, innerH) {
+    const box = estimatedLabelBox(text, candidate.x, candidate.y, candidate.anchor);
+    let x = candidate.x;
+    let y = candidate.y;
+    if (box.x < 3) x += 3 - box.x;
+    if (box.x + box.width > innerW - 3) x -= box.x + box.width - (innerW - 3);
+    if (box.y < 3) y += 3 - box.y;
+    if (box.y + box.height > innerH - 3) y -= box.y + box.height - (innerH - 3);
+    return { x, y, anchor: candidate.anchor, box: estimatedLabelBox(text, x, y, candidate.anchor) };
+  }
+  function choosePointLabelPosition(text, px, py, preferAbove, innerW, innerH, occupied) {
+    const preferRight = px < innerW - 150;
+    const primaryAnchor = preferRight ? 'start' : 'end';
+    const secondaryAnchor = preferRight ? 'end' : 'start';
+    const primaryDx = preferRight ? 10 : -10;
+    const secondaryDx = preferRight ? -10 : 10;
+    const primaryY = preferAbove ? -10 : 17;
+    const secondaryY = preferAbove ? 17 : -10;
+    const candidates = [
+      { x: px + primaryDx, y: py + primaryY, anchor: primaryAnchor },
+      { x: px + primaryDx, y: py + secondaryY, anchor: primaryAnchor },
+      { x: px + secondaryDx, y: py + primaryY, anchor: secondaryAnchor },
+      { x: px + secondaryDx, y: py + secondaryY, anchor: secondaryAnchor },
+      { x: px + primaryDx, y: py + 30, anchor: primaryAnchor },
+      { x: px + primaryDx, y: py - 24, anchor: primaryAnchor }
+    ].map(c => clampLabel(text, c, innerW, innerH));
+    return candidates.find(c => !occupied.some(box => boxesOverlap(c.box, box))) || candidates[0];
+  }
+
+  function renderChart() {
+    const data = contextData();
+    const selected = selectedCountry();
+    const width = Math.max(320, Math.floor(chartWrap.clientWidth));
+    const height = width < 560 ? 370 : 430;
+    const margin = { top: 12, right: 18, bottom: width < 560 ? 56 : 62, left: width < 560 ? 50 : 68 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+    const maxRaw = Math.max(1, ...data.flatMap(d => [valueOf(d, 'model'), valueOf(d, 'wb')]));
+    const domainMax = maxNice(maxRaw * 1.04);
+    const ticks = axisTicks(domainMax, width);
+    const svg = makeEl('svg', { viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': 'Scatter chart comparing modelled remittances sent with World Bank remittances sent' });
+    const plot = makeEl('g', { transform: `translate(${margin.left},${margin.top})` });
+    svg.appendChild(plot);
+
+    const x = v => scaleLog(v, domainMax, 0, innerW);
+    const y = v => innerH - scaleLog(v, domainMax, 0, innerH);
+
+    let lastXLabel = -Infinity;
+    let lastYLabel = Infinity;
+    ticks.forEach(t => {
+      const px = x(t), py = y(t);
+      plot.appendChild(makeEl('line', { x1: px, x2: px, y1: 0, y2: innerH, class: 'grid-line' }));
+      plot.appendChild(makeEl('line', { x1: 0, x2: innerW, y1: py, y2: py, class: 'grid-line' }));
+      const label = t === 0 ? '0' : '$' + formatUsd(t);
+      if (t === 0 || px - lastXLabel > (width < 560 ? 42 : 48) || t === domainMax) {
+        const xt = makeEl('text', { x: px, y: innerH + 20, 'text-anchor': 'middle', class: 'axis tick' }, label);
+        plot.appendChild(xt);
+        lastXLabel = px;
+      }
+      if (t === 0 || lastYLabel - py > 24 || t === domainMax) {
+        const yt = makeEl('text', { x: -8, y: py + 4, 'text-anchor': 'end', class: 'axis tick' }, label);
+        plot.appendChild(yt);
+        lastYLabel = py;
+      }
+    });
+
+    plot.appendChild(makeEl('line', { x1: 0, x2: innerW, y1: innerH, y2: innerH, class: 'axis-line' }));
+    plot.appendChild(makeEl('line', { x1: 0, x2: 0, y1: 0, y2: innerH, class: 'axis-line' }));
+    plot.appendChild(makeEl('line', { x1: 0, y1: innerH, x2: innerW, y2: 0, class: 'equal-line' }));
+    const labelBoxes = [];
+    const equalLabel = clampLabel('Equal values', { x: innerW - 8, y: 27, anchor: 'end' }, innerW, innerH);
+    addPillLabel(plot, { x: equalLabel.x, y: equalLabel.y, 'text-anchor': equalLabel.anchor, class: 'equal-label' }, 'Equal values', 'equal-label-bg');
+    labelBoxes.push(equalLabel.box);
+
+    const xTitle = makeEl('text', { x: margin.left + innerW / 2, y: height - 21, 'text-anchor': 'middle', class: 'axis-title' }, 'World Bank remittances sent (current US$)');
+    svg.appendChild(xTitle);
+    const yTitle = makeEl('text', { x: 16, y: margin.top + innerH / 2, transform: `rotate(-90, 16, ${margin.top + innerH / 2})`, 'text-anchor': 'middle', class: 'axis-title' }, 'Modelled remittances sent (current US$)');
+    svg.appendChild(yTitle);
+
+    const pointsG = makeEl('g', {});
+    plot.appendChild(pointsG);
+    data.forEach(d => {
+      const isSelected = selected && d.code === selected.code;
+      const isMuted = selected && !isSelected;
+      const c = makeEl('circle', {
+        cx: x(valueOf(d, 'wb')),
+        cy: y(valueOf(d, 'model')),
+        r: isSelected ? 7.2 : (width < 560 ? 4.2 : 5.1),
+        fill: isSelected ? COLORS.red : directionColor(d),
+        stroke: isSelected ? COLORS.tealBlack : 'white',
+        'stroke-width': isSelected ? 1.6 : 0.75,
+        opacity: isMuted ? 0.22 : 0.78,
+        class: 'point',
+        tabindex: 0,
+        'aria-label': `${d.country}, modelled ${formatUsdWithDollar(valueOf(d, 'model'))}, World Bank ${formatUsdWithDollar(valueOf(d, 'wb'))}`
+      });
+      c.addEventListener('mousemove', ev => showTooltip(ev, d));
+      c.addEventListener('mouseenter', ev => showTooltip(ev, d));
+      c.addEventListener('mouseleave', hideTooltip);
+      c.addEventListener('focus', ev => showTooltip(ev, d));
+      c.addEventListener('blur', hideTooltip);
+      c.addEventListener('click', ev => {
+        ev.stopPropagation();
+        hideTooltip();
+        state.country = d.code;
+        countrySelect.updateOptions(countryOptions(), state.country);
+        updateAllViews();
+      });
+      pointsG.appendChild(c);
+    });
+
+    const labels = [];
+    if (selected) { labels.push(selected); }
+    else {
+      data.slice().sort((a,b) => Math.abs(diffOf(b)) - Math.abs(diffOf(a))).slice(0, width < 560 ? 3 : 5).forEach(d => labels.push(d));
+    }
+    labels.forEach(d => {
+      const px = x(valueOf(d, 'wb')), py = y(valueOf(d, 'model'));
+      const aboveParity = valueOf(d, 'model') >= valueOf(d, 'wb');
+      const label = choosePointLabelPosition(d.country, px, py, aboveParity, innerW, innerH, labelBoxes);
+      addPillLabel(plot, { x: label.x, y: label.y, 'text-anchor': label.anchor, class: 'point-label' }, d.country, 'point-label-bg');
+      labelBoxes.push(label.box);
+    });
+
+    chartWrap.innerHTML = '';
+    chartWrap.appendChild(svg);
+  }
+
+  function showTooltip(ev, d) {
+    const model = valueOf(d, 'model'), wb = valueOf(d, 'wb'), gap = model - wb, ratio = wb > 0 ? model / wb : null;
+    const pctGap = wb > 0 ? ((gap / wb) * 100) : null;
+    tooltip.innerHTML = `
+      <div class="remit-tooltip__title">${escapeHtml(d.country)}</div>
+      <div>${escapeHtml(d.income)} · ${state.year} · ${escapeHtml(directionLabel(d))}</div>
+      <div class="remit-tooltip__row"><span>Modelled</span><span>${formatUsdWithDollar(model)}</span></div>
+      <div class="remit-tooltip__row"><span>World Bank</span><span>${formatUsdWithDollar(wb)}</span></div>
+      <div class="remit-tooltip__row"><span>Gap</span><span>${formatUsdWithDollar(gap)}</span></div>
+      <div class="remit-tooltip__row"><span>Model / WB</span><span>${formatPctGap(pctGap)}</span></div>
+    `;
+    tooltip.hidden = false;
+    const coords = pointerCoords(ev);
+    if (coords) positionTooltip(coords.x, coords.y);
+  }
+  function pointerCoords(ev) {
+    const touch = ev.touches?.[0] || ev.changedTouches?.[0];
+    if (touch && Number.isFinite(touch.clientX) && Number.isFinite(touch.clientY)) {
+      return { x: touch.clientX, y: touch.clientY };
+    }
+    if (Number.isFinite(ev.clientX) && Number.isFinite(ev.clientY)) {
+      return { x: ev.clientX, y: ev.clientY };
+    }
+    const target = ev.currentTarget || ev.target;
+    if (target && typeof target.getBoundingClientRect === 'function') {
+      const rect = target.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+    return null;
+  }
+  function positionTooltip(clientX, clientY) {
+    const pad = 12;
+    const offset = 16;
+    const box = tooltip.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let left;
+    if (clientX + offset + box.width <= vw - pad) {
+      left = clientX + offset;
+    } else if (clientX - offset - box.width >= pad) {
+      left = clientX - offset - box.width;
+    } else {
+      left = Math.max(pad, Math.min(vw - pad - box.width, clientX + offset));
+    }
+    let top;
+    if (clientY + offset + box.height <= vh - pad) {
+      top = clientY + offset;
+    } else if (clientY - offset - box.height >= pad) {
+      top = clientY - offset - box.height;
+    } else {
+      top = Math.max(pad, Math.min(vh - pad - box.height, clientY + offset));
+    }
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }
+  function hideTooltip() { tooltip.hidden = true; }
+
+  function updateAllViews() {
+    updateCards();
+    updateTitleAndLegend();
+    renderChart();
+  }
+
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  function syncFullscreenButton() {
+    const isFullscreen = document.fullscreenElement === wrapper;
+    fullscreenBtn.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen' : 'View fullscreen');
+    fullscreenBtn.setAttribute('title', isFullscreen ? 'Exit fullscreen' : 'View fullscreen');
+  }
+  fullscreenBtn.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else wrapper.requestFullscreen?.();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    syncFullscreenButton();
+    hideTooltip();
+    window.setTimeout(renderChart, 80);
+  });
+  syncFullscreenButton();
+  window.addEventListener('resize', () => { window.clearTimeout(window.__remitResize); window.__remitResize = window.setTimeout(renderChart, 120); });
+  chartWrap.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('.point')) return;
+    hideTooltip();
+    if (state.country !== 'ALL') {
+      state.country = 'ALL';
+      countrySelect.updateOptions(countryOptions(), state.country);
+      updateAllViews();
+    }
+  });
+  wrapper.addEventListener('click', e => { if (e.target === wrapper) hideTooltip(); });
+
+  updateAllViews();
+})();
+</script>
+</body>
+</html>
