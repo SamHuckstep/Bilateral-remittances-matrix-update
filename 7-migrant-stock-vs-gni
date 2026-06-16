@@ -76,7 +76,7 @@
     <svg id="scatterSvg" class="svg-holder" aria-label="Scatter plot" role="img"></svg>
   </div>
 
-  <div class="notes" id="notes"><strong>Notes:</strong> Each bubble is an origin country. The x-axis shows the 2021 baseline; the y-axis shows the change from 2021 to 2024. In Destination GNI view, the x-axis shows the migrant-stock-weighted average GNI per capita of destination countries hosting that country's emigrants, and the y-axis shows the percentage change in that average. Bubble area is proportional to the 2024 migrant stock abroad. In Migration view, the x-axis shows total migrants abroad in 2021 and the y-axis shows percentage growth to 2024; bubble area is proportional to the absolute change in migrant stock from 2021 to 2024. Self-corridors and destinations with unavailable or non-positive GNI are excluded from GNI averages.</div>
+  <div class="notes" id="notes"><strong>Notes:</strong> In Destination GNI view, bubble area is proportional to the 2024 migrant stock abroad. In Migration view, bubble area is proportional to the absolute change in migrant stock from 2021 to 2024. Self-corridors and destinations with unavailable or non-positive GNI are excluded from GNI averages.</div>
 </div>
 
 <div class="tooltip" id="tooltip" hidden></div>
@@ -355,4 +355,3 @@ init();
 </script>
 </body>
 </html>
-
