@@ -1,4 +1,3 @@
-[README.txt](https://github.com/user-attachments/files/29048842/README.txt)
 # Bilateral remittances matrix update — interactive visualisations
 
 This repository hosts the interactive visualisations accompanying the bilateral remittances matrix update.
