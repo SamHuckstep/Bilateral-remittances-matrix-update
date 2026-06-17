@@ -154,12 +154,6 @@
       overflow: hidden;
     }
 
-    .frame-note {
-      margin: 8px 0 0;
-      color: var(--cgd-dark-gray);
-      font-size: 12px;
-    }
-
     footer {
       margin: 42px 0 0;
       color: var(--cgd-dark-gray);
@@ -234,9 +228,9 @@
     <iframe
       class="auto-height-frame"
       src="1-data-coverage-gaps.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="520"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Data coverage gaps in the bilateral remittance model"
       allowfullscreen
@@ -252,9 +246,9 @@
     <iframe
       class="auto-height-frame"
       src="2-model-v-wb.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Modelled remittances sent compared with World Bank payments data"
       allowfullscreen
@@ -270,9 +264,9 @@
     <iframe
       class="auto-height-frame"
       src="3-total-remittance-flows.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Remittance inflows rose for most countries"
       allowfullscreen
@@ -288,9 +282,9 @@
     <iframe
       class="auto-height-frame"
       src="4-remittances-map.html"
-      height="760"
+      height="680"
       data-min-height="520"
-      data-max-height="1600"
+      data-max-height="2600"
       loading="lazy"
       title="The geography of remittance flows"
       allowfullscreen
@@ -306,9 +300,9 @@
     <iframe
       class="auto-height-frame"
       src="5-remittance-flows-regions.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Remittance flows by source and recipient region"
       allowfullscreen
@@ -324,9 +318,9 @@
     <iframe
       class="auto-height-frame"
       src="6-remittance-flows-incomes.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Remittance flows by source and recipient income group"
       allowfullscreen
@@ -342,9 +336,9 @@
     <iframe
       class="auto-height-frame"
       src="7-migrant-stock-vs-gni.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Access to productive emigration opportunities varies"
       allowfullscreen
@@ -360,9 +354,9 @@
     <iframe
       class="auto-height-frame"
       src="8-remittances-source-dependence.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="How concentrated are recipient countries’ remittance sources?"
       allowfullscreen
@@ -378,9 +372,9 @@
     <iframe
       class="auto-height-frame"
       src="9-remittance-source-importance.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="How important are remittance source countries to recipients?"
       allowfullscreen
@@ -396,9 +390,9 @@
     <iframe
       class="auto-height-frame"
       src="10-remittances-vs-oda-fdi.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="680"
+      data-min-height="420"
+      data-max-height="2600"
       loading="lazy"
       title="Remittances vs. ODA and FDI from OECD countries"
       allowfullscreen
@@ -414,9 +408,9 @@
     <iframe
       class="auto-height-frame"
       src="11-total-remittances-vs-gni.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Total remittance inflows relative to current US$ GNI, 2021–2024"
       allowfullscreen
@@ -432,9 +426,9 @@
     <iframe
       class="auto-height-frame"
       src="12-remittance-corridors-vs-gni.html"
-      height="720"
-      data-min-height="360"
-      data-max-height="1400"
+      height="560"
+      data-min-height="320"
+      data-max-height="2200"
       loading="lazy"
       title="Which remittance corridors matter most relative to recipient GNI?"
       allowfullscreen
@@ -462,31 +456,47 @@
     const body = doc.body;
     const root = doc.documentElement;
 
+    /*
+      Do not include clientHeight here. clientHeight reflects the iframe's
+      current viewport height, so including it prevents frames from shrinking.
+    */
     return Math.ceil(Math.max(
       body ? body.scrollHeight : 0,
       body ? body.offsetHeight : 0,
-      body ? body.clientHeight : 0,
       root ? root.scrollHeight : 0,
-      root ? root.offsetHeight : 0,
-      root ? root.clientHeight : 0
+      root ? root.offsetHeight : 0
     ));
   }
 
   function resizeFrame(frame) {
     try {
-      const measuredHeight = measureFrameHeight(frame);
-      if (!measuredHeight) return;
+      /*
+        First temporarily collapse the iframe so the child document's scrollHeight
+        is not inflated by the previous iframe height. This is what allows large
+        blank spaces to disappear.
+      */
+      frame.style.height = "1px";
 
-      const minHeight = Number(frame.dataset.minHeight || 360);
-      const maxHeight = Number(frame.dataset.maxHeight || 1600);
-      const padding = Number(frame.dataset.heightPadding || 2);
-      const finalHeight = Math.min(
-        Math.max(measuredHeight + padding, minHeight),
-        maxHeight
-      );
+      requestAnimationFrame(function () {
+        try {
+          const measuredHeight = measureFrameHeight(frame);
+          if (!measuredHeight) return;
 
-      frame.style.height = finalHeight + "px";
-      frame.setAttribute("scrolling", "no");
+          const minHeight = Number(frame.dataset.minHeight || 320);
+          const maxHeight = Number(frame.dataset.maxHeight || 2200);
+          const padding = Number(frame.dataset.heightPadding || 8);
+
+          const finalHeight = Math.min(
+            Math.max(measuredHeight + padding, minHeight),
+            maxHeight
+          );
+
+          frame.style.height = finalHeight + "px";
+          frame.setAttribute("scrolling", "no");
+        } catch (error) {
+          console.warn("Could not complete iframe resize:", frame.src, error);
+        }
+      });
     } catch (error) {
       console.warn("Could not auto-resize iframe:", frame.src, error);
     }
@@ -497,40 +507,50 @@
   }
 
   function attachAutoResize(frame) {
+    let resizeTimer = null;
+
+    function scheduleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        resizeFrame(frame);
+      }, 80);
+    }
+
     frame.addEventListener("load", function () {
-      resizeFrame(frame);
+      scheduleResize();
 
       try {
         const doc = getFrameDocument(frame);
 
         if ("ResizeObserver" in window && doc && doc.documentElement) {
-          const observer = new ResizeObserver(function () {
-            resizeFrame(frame);
-          });
-
+          const observer = new ResizeObserver(scheduleResize);
           observer.observe(doc.documentElement);
           if (doc.body) observer.observe(doc.body);
         }
 
-        /*
-          A few delayed checks help after fonts, SVGs, maps, controls,
-          or lazy-rendered elements settle.
-        */
-        setTimeout(function () { resizeFrame(frame); }, 100);
-        setTimeout(function () { resizeFrame(frame); }, 350);
-        setTimeout(function () { resizeFrame(frame); }, 1000);
-        setTimeout(function () { resizeFrame(frame); }, 2000);
+        setTimeout(scheduleResize, 150);
+        setTimeout(scheduleResize, 500);
+        setTimeout(scheduleResize, 1200);
+        setTimeout(scheduleResize, 2500);
       } catch (error) {
         console.warn("Could not attach iframe ResizeObserver:", frame.src, error);
       }
     });
+
+    /*
+      Also try resizing immediately. This catches iframes that finished loading
+      before this script ran.
+    */
+    setTimeout(scheduleResize, 0);
+    setTimeout(scheduleResize, 500);
+    setTimeout(scheduleResize, 1500);
   }
 
   document.querySelectorAll("iframe.auto-height-frame").forEach(attachAutoResize);
 
   window.addEventListener("resize", function () {
     clearTimeout(window.__previewResizeTimer);
-    window.__previewResizeTimer = setTimeout(resizeAllFrames, 150);
+    window.__previewResizeTimer = setTimeout(resizeAllFrames, 180);
   });
 </script>
 </body>
