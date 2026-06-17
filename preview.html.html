@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bilateral remittances matrix update — visualisations preview</title>
+  <style>
+    :root {
+      --cgd-teal: #0B4C5B;
+      --cgd-light-teal: #006970;
+      --cgd-gold: #FFB52C;
+      --cgd-teal-gray: #85A5AD;
+      --cgd-light-gray: #DFE0E2;
+      --cgd-dark-gray: #394649;
+      --cgd-teal-black: #1A272A;
+      --cgd-offwhite: #F8FAFB;
+      --border: #D9E1E4;
+      --font-sans: "Sofia Pro", "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      color: var(--cgd-teal-black);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    body {
+      padding: 28px 18px 56px;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin: 0 0 28px;
+      padding: 22px 24px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--cgd-offwhite);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: var(--cgd-teal);
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .intro {
+      max-width: 820px;
+      margin: 0;
+      color: var(--cgd-dark-gray);
+      font-size: 15px;
+    }
+
+    .contents {
+      margin: 18px 0 0;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .contents h2 {
+      margin: 0 0 8px;
+      color: var(--cgd-teal);
+      font-size: 16px;
+    }
+
+    .contents ol {
+      margin: 0;
+      padding-left: 22px;
+      columns: 2;
+      column-gap: 38px;
+    }
+
+    .contents li {
+      break-inside: avoid;
+      margin: 0 0 5px;
+      color: var(--cgd-dark-gray);
+      font-size: 13px;
+    }
+
+    .contents a {
+      color: var(--cgd-light-teal);
+      text-decoration: none;
+    }
+
+    .contents a:hover,
+    .contents a:focus {
+      text-decoration: underline;
+    }
+
+    section.visual {
+      margin: 0 0 58px;
+      padding: 0 0 34px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section.visual:last-of-type {
+      border-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .visual-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      margin: 0;
+      color: var(--cgd-teal);
+      font-size: 22px;
+      line-height: 1.22;
+      letter-spacing: -0.01em;
+    }
+
+    .open-link {
+      flex: 0 0 auto;
+      color: var(--cgd-light-teal);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .open-link:hover,
+    .open-link:focus {
+      text-decoration: underline;
+    }
+
+    iframe {
+      width: 100%;
+      border: 0;
+      display: block;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 0;
+    }
+
+    .note {
+      margin: 8px 0 0;
+      color: var(--cgd-dark-gray);
+      font-size: 12px;
+    }
+
+    footer {
+      margin: 42px 0 0;
+      color: var(--cgd-dark-gray);
+      font-size: 12px;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 18px 10px 42px;
+      }
+
+      header {
+        padding: 17px 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      .contents ol {
+        columns: 1;
+      }
+
+      .visual-header {
+        display: block;
+      }
+
+      .open-link {
+        display: inline-block;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Bilateral remittances matrix update — visualisations preview</h1>
+    <p class="intro">
+      This page previews the interactive visualisations accompanying the bilateral remittances matrix update.
+      Each chart is embedded using an iframe, matching the intended approach for the digital note.
+    </p>
+
+    <nav class="contents" aria-label="Visualisation list">
+      <h2>Visualisations</h2>
+      <ol>
+        <li><a href="#visual-1">Data coverage gaps in the bilateral remittance model</a></li>
+        <li><a href="#visual-2">Modelled remittances sent compared with World Bank payments data</a></li>
+        <li><a href="#visual-3">Remittance inflows rose for most countries</a></li>
+        <li><a href="#visual-4">The geography of remittance flows</a></li>
+        <li><a href="#visual-5">Remittance flows by source and recipient region</a></li>
+        <li><a href="#visual-6">Remittance flows by source and recipient income group</a></li>
+        <li><a href="#visual-7">Access to productive emigration opportunities varies</a></li>
+        <li><a href="#visual-8">How concentrated are recipient countries’ remittance sources?</a></li>
+        <li><a href="#visual-9">How important are remittance source countries to recipients?</a></li>
+        <li><a href="#visual-10">Remittances vs. ODA and FDI from OECD countries</a></li>
+        <li><a href="#visual-11">Total remittance inflows relative to current US$ GNI, 2021–2024</a></li>
+        <li><a href="#visual-12">Which remittance corridors matter most relative to recipient GNI?</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <section class="visual" id="visual-1">
+    <div class="visual-header">
+      <h2>1. Data coverage gaps in the bilateral remittance model</h2>
+      <a class="open-link" href="1-data-coverage-gaps.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="1-data-coverage-gaps.html"
+      height="720"
+      loading="lazy"
+      title="Data coverage gaps in the bilateral remittance model"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-2">
+    <div class="visual-header">
+      <h2>2. Modelled remittances sent compared with World Bank payments data</h2>
+      <a class="open-link" href="2-model-v-wb.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="2-model-v-wb.html"
+      height="760"
+      loading="lazy"
+      title="Modelled remittances sent compared with World Bank payments data"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-3">
+    <div class="visual-header">
+      <h2>3. Remittance inflows rose for most countries</h2>
+      <a class="open-link" href="3-total-remittance-flows.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="3-total-remittance-flows.html"
+      height="720"
+      loading="lazy"
+      title="Remittance inflows rose for most countries"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-4">
+    <div class="visual-header">
+      <h2>4. The geography of remittance flows</h2>
+      <a class="open-link" href="4-remittances-map.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="4-remittances-map.html"
+      height="860"
+      loading="lazy"
+      title="The geography of remittance flows"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-5">
+    <div class="visual-header">
+      <h2>5. Remittance flows by source and recipient region</h2>
+      <a class="open-link" href="5-remittance-flows-regions.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="5-remittance-flows-regions.html"
+      height="760"
+      loading="lazy"
+      title="Remittance flows by source and recipient region"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-6">
+    <div class="visual-header">
+      <h2>6. Remittance flows by source and recipient income group</h2>
+      <a class="open-link" href="6-remittance-flows-incomes.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="6-remittance-flows-incomes.html"
+      height="760"
+      loading="lazy"
+      title="Remittance flows by source and recipient income group"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-7">
+    <div class="visual-header">
+      <h2>7. Access to productive emigration opportunities varies</h2>
+      <a class="open-link" href="7-migrant-stock-vs-gni.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="7-migrant-stock-vs-gni.html"
+      height="760"
+      loading="lazy"
+      title="Access to productive emigration opportunities varies"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-8">
+    <div class="visual-header">
+      <h2>8. How concentrated are recipient countries’ remittance sources?</h2>
+      <a class="open-link" href="8-remittances-source-dependence.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="8-remittances-source-dependence.html"
+      height="760"
+      loading="lazy"
+      title="How concentrated are recipient countries’ remittance sources?"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-9">
+    <div class="visual-header">
+      <h2>9. How important are remittance source countries to recipients?</h2>
+      <a class="open-link" href="9-remittance-source-importance.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="9-remittance-source-importance.html"
+      height="760"
+      loading="lazy"
+      title="How important are remittance source countries to recipients?"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-10">
+    <div class="visual-header">
+      <h2>10. Remittances vs. ODA and FDI from OECD countries</h2>
+      <a class="open-link" href="10-remittances-vs-oda-fdi.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="10-remittances-vs-oda-fdi.html"
+      height="760"
+      loading="lazy"
+      title="Remittances vs. ODA and FDI from OECD countries"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-11">
+    <div class="visual-header">
+      <h2>11. Total remittance inflows relative to current US$ GNI, 2021–2024</h2>
+      <a class="open-link" href="11-total-remittances-vs-gni.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="11-total-remittances-vs-gni.html"
+      height="720"
+      loading="lazy"
+      title="Total remittance inflows relative to current US$ GNI, 2021–2024"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <section class="visual" id="visual-12">
+    <div class="visual-header">
+      <h2>12. Which remittance corridors matter most relative to recipient GNI?</h2>
+      <a class="open-link" href="12-remittance-corridors-vs-gni.html" target="_blank" rel="noopener">Open standalone</a>
+    </div>
+    <iframe
+      src="12-remittance-corridors-vs-gni.html"
+      height="760"
+      loading="lazy"
+      title="Which remittance corridors matter most relative to recipient GNI?"
+      allowfullscreen
+      allow="fullscreen">
+    </iframe>
+  </section>
+
+  <footer>
+    <p>
+      Note: this preview page is for review only. The final digital note may use different surrounding text,
+      spacing, or iframe heights.
+    </p>
+  </footer>
+</main>
+</body>
+</html>
