@@ -7,7 +7,7 @@ The visualisations are static HTML files designed to be viewed directly through 
 
 ## Preview
 
-A preview page with all visualisations embedded will be available here once `preview.html` has been added:
+A preview page with all visualisations embedded is available here:
 
 https://samhuckstep.github.io/Bilateral-remittances-matrix-update/preview.html
 
